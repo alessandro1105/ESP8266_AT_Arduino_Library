@@ -50,7 +50,6 @@ const char ESP8266_DISCONNECT[] = "+CWQAP"; // Disconnect from AP
 //!const char ESP8266_DHCP_EN[] = "+CWDHCP"; // Enable/disable DHCP
 //!const char ESP8266_AUTO_CONNECT[] = "+CWAUTOCONN"; // Connect to AP automatically
 //!const char ESP8266_SET_STA_MAC[] = "+CIPSTAMAC"; // Set MAC address of station
-const char ESP8266_GET_STA_MAC[] = "+CIPSTAMAC"; // Get MAC address of station
 //!const char ESP8266_SET_AP_MAC[] = "+CIPAPMAC"; // Set MAC address of softAP
 //!const char ESP8266_SET_STA_IP[] = "+CIPSTA"; // Set IP address of ESP8266 station
 //!const char ESP8266_SET_AP_IP[] = "+CIPAP"; // Set IP address of ESP8266 softAP
@@ -67,11 +66,3 @@ const char ESP8266_TCP_MULTIPLE[] = "+CIPMUX"; // Set multiple connections mode
 const char ESP8266_SERVER_CONFIG[] = "+CIPSERVER"; // Configure as server
 const char ESP8266_TRANSMISSION_MODE[] = "+CIPMODE"; // Set transmission mode
 //!const char ESP8266_SET_SERVER_TIMEOUT[] = "+CIPSTO"; // Set timeout when ESP8266 runs as TCP server
-const char ESP8266_PING[] = "+PING"; // Function PING
-
-//////////////////////////
-// Custom GPIO Commands //
-//////////////////////////
-const char ESP8266_PINMODE[] = "+PINMODE"; // Set GPIO mode (input/output)
-const char ESP8266_PINWRITE[] = "+PINWRITE"; // Write GPIO (high/low)
-const char ESP8266_PINREAD[] = "+PINREAD"; // Read GPIO digital value

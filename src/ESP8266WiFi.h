@@ -18,14 +18,14 @@ local, and you've found our code helpful, please buy us a round!
 Distributed as-is; no warranty is given.
 ******************************************************************************/
 
-#ifndef _SPARKFUNESP8266_H_
-#define _SPARKFUNESP8266_H_
+#ifndef ESP8266WIFI_H
+#define ESP8266WIFI_H
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <IPAddress.h>
-#include "SparkFunESP8266Client.h"
-#include "SparkFunESP8266Server.h"
+#include "ESP8266Client.h"
+#include "ESP8266Server.h"
 
 /////////////////////
 // Pin Definitions //
@@ -130,7 +130,7 @@ public:
 	///////////////////////
 	bool test();
 	bool reset();
-	int16_t getVersion(char * ATversion, char * SDKversion, char * compileTime);
+	int16_t getVersion(char * ATversion);
 	bool echo(bool enable);
 	bool setBaud(unsigned long baud);
 	
@@ -143,7 +143,6 @@ public:
 	int16_t connect(const char * ssid);
 	int16_t connect(const char * ssid, const char * pwd);
 	int16_t getAP(char * ssid);
-	int16_t localMAC(char * mac);
 	int16_t disconnect();
 	IPAddress localIP();
 	
@@ -158,15 +157,7 @@ public:
 	int16_t setTransferMode(uint8_t mode);
 	int16_t setMux(uint8_t mux);
 	int16_t configureTCPServer(uint16_t port, uint8_t create = 1);
-	int16_t ping(IPAddress ip);
-	int16_t ping(char * server);
-		
-	//////////////////////////
-	// Custom GPIO Commands //
-	//////////////////////////
-	int16_t pinMode(uint8_t pin, uint8_t mode);
-	int16_t digitalWrite(uint8_t pin, uint8_t state);
-	int8_t digitalRead(uint8_t pin);
+	
 	
 	///////////////////////////////////
 	// Virtual Functions from Stream //

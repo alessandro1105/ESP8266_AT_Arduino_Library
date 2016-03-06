@@ -18,15 +18,15 @@ local, and you've found our code helpful, please buy us a round!
 Distributed as-is; no warranty is given.
 ******************************************************************************/
 
-#ifndef _SPARKFUNESP8266SERVER_H_
-#define _SPARKFUNESP8266SERVER_H_
+#ifndef ESP8266SERVER_H
+#define ESP8266SERVER_H
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <IPAddress.h>
 #include "Server.h"
-#include "SparkFunESP8266WiFi.h"
-#include "SparkFunESP8266Client.h"
+#include "ESP8266WiFi.h"
+#include "ESP8266Client.h"
 
 class ESP8266Server : public Server 
 {

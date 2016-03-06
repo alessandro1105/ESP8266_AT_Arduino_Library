@@ -18,10 +18,10 @@ local, and you've found our code helpful, please buy us a round!
 Distributed as-is; no warranty is given.
 ******************************************************************************/
 
-#include "SparkFunESP8266WiFi.h"
+#include "ESP8266WiFi.h"
 #include <Arduino.h>
 #include "util/ESP8266_AT.h"
-#include "SparkFunESP8266Client.h"
+#include "ESP8266Client.h"
 
 ESP8266Client::ESP8266Client()
 {
@@ -85,14 +85,14 @@ size_t ESP8266Client::write(const uint8_t *buf, size_t size)
 
 int ESP8266Client::available()
 {
-	int available = esp8266.available();
-	if (available == 0)
-	{
-		// Delay for the amount of time it'd take to receive one character
-		delayMicroseconds((1 / esp8266._baud) * 10 * 1E6);
-		// Check again just to be sure:
-		available = esp8266.available();
-	}
+	// int available = esp8266.available();
+	// if (available == 0)
+	// {
+	// 	// Delay for the amount of time it'd take to receive one character
+	// 	delayMicroseconds((1 / esp8266._baud) * 10 * 1E6);
+	// 	// Check again just to be sure:
+	// 	available = esp8266.available();
+	// }
 	return esp8266.available();
 }
 
