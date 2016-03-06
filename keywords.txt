@@ -33,7 +33,6 @@ close	KEYWORD2
 setTransferMode	KEYWORD2
 setMux	KEYWORD2
 configureTCPServer	KEYWORD2
-ping	KEYWORD2
 
 ################################################################
 # Constants

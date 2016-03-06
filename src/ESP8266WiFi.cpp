@@ -58,8 +58,8 @@ bool ESP8266Class::begin(unsigned long baudRate, esp8266_serial_port serialPort)
 	
 	if (test())
 	{
-		//if (!setTransferMode(0))
-		//	return false;
+		if (!reset())
+			return false;
 		if (!setMux(1))
 			return false;
 #ifdef ESP8266_DISABLE_ECHO
@@ -537,9 +537,6 @@ int16_t ESP8266Class::configureTCPServer(uint16_t port, uint8_t create)
 
 size_t ESP8266Class::write(uint8_t c)
 {
-	//DEBUG
-	Serial.print((char) c);
-
 	_serial->write(c);
 }
 
@@ -569,37 +566,15 @@ void ESP8266Class::flush()
 
 void ESP8266Class::sendCommand(const char * cmd, enum esp8266_command_type type, const char * params)
 {
-
-	//DEBUG
-	Serial.print("COMMAND: ");
-	Serial.print("AT");
-	Serial.print(cmd);
-
-
 	_serial->print("AT");
 	_serial->print(cmd);
 	if (type == ESP8266_CMD_QUERY) {
-
-		//DEBUG
-		Serial.print('?');
-
 		_serial->print('?');
-
-
 	} else if (type == ESP8266_CMD_SETUP) {
-
-		//DEBUG
-		Serial.print('=');
-		Serial.println(params);	
-
-
 		_serial->print("=");
 		_serial->print(params);		
 	}
 	_serial->print("\r\n");
-
-	//DEBUG
-	Serial.println("\n");
 }
 
 int16_t ESP8266Class::readForResponse(const char * rsp, unsigned int timeout)
@@ -626,10 +601,6 @@ int16_t ESP8266Class::readForResponse(const char * rsp, unsigned int timeout)
 
 int16_t ESP8266Class::readForResponses(const char * pass, const char * fail, unsigned int timeout)
 {
-
-	//DEBUG
-	Serial.print("RESPONSE: ");
-
 	unsigned long timeIn = millis();	// Timestamp coming into function
 	unsigned int received = 0; // received keeps track of number of chars read
 	
@@ -665,10 +636,6 @@ unsigned int ESP8266Class::readByteToBuffer()
 {
 	// Read the data in
 	char c = _serial->read();
-
-	//DEBUG
-	Serial.print(c);
-	
 	// Store the data in the buffer
 	esp8266RxBuffer[bufferHead] = c;
 	//! TODO: Don't care if we overflow. Should we? Set a flag or something?

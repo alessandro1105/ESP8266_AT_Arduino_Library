@@ -153,16 +153,6 @@ ESP8266Client::operator bool()
 // Private Methods
 uint8_t ESP8266Client::getFirstSocket()
 {
-	/*
-	for (int i = 0; i < ESP8266_MAX_SOCK_NUM; i++) 
-	{
-		if (esp8266._state[i] == AVAILABLE)
-		{
-			return i;
-		}
-	}
-	return ESP8266_SOCK_NOT_AVAIL;
-	*/
 	esp8266.updateStatus();
 	for (int i = 0; i < ESP8266_MAX_SOCK_NUM; i++) 
 	{
