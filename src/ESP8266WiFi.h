@@ -30,8 +30,9 @@ Distributed as-is; no warranty is given.
 /////////////////////
 // Pin Definitions //
 /////////////////////
-#define ESP8266_SW_RX	9	// ESP8266 UART0 RXI goes to Arduino pin 9
-#define ESP8266_SW_TX	8	// ESP8266 UART0 TXO goes to Arduino pin 8
+#define ESP8266_SW_RX 9	// ESP8266 UART0 RXI goes to Arduino pin 9
+#define ESP8266_SW_TX 8	// ESP8266 UART0 TXO goes to Arduino pin 8
+#define ESP8266_BAUDRATE 9600	// ESP8266 BAUDRATE
 
 ///////////////////////////////
 // Command Response Timeouts //
@@ -82,11 +83,6 @@ typedef enum esp8266_connect_status {
 	ESP8266_STATUS_NOWIFI = 5	
 };
 
-typedef enum esp8266_serial_port {
-	ESP8266_SOFTWARE_SERIAL,
-	ESP8266_HARDWARE_SERIAL
-};
-
 typedef enum esp8266_socket_state {
 	AVAILABLE = 0,
 	TAKEN = 1,
@@ -123,7 +119,8 @@ class ESP8266Class : public Stream
 public:
 	ESP8266Class();
 	
-	bool begin(unsigned long baudRate = 9600, esp8266_serial_port serialPort = ESP8266_SOFTWARE_SERIAL);
+	bool begin(unsigned long baudRate = ESP8266_BAUDRATE);
+	bool begin(Stream &serial);
 	
 	///////////////////////
 	// Basic AT Commands //
@@ -175,7 +172,6 @@ public:
 	
 protected:
     Stream* _serial;
-	unsigned long _baud;
 	
 private:
 	//////////////////////////

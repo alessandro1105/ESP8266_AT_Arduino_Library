@@ -42,19 +42,34 @@ ESP8266Class::ESP8266Class()
 		_state[i] = AVAILABLE;
 }
 
-bool ESP8266Class::begin(unsigned long baudRate, esp8266_serial_port serialPort)
+bool ESP8266Class::begin(unsigned long baudRate)
 {
-	_baud = baudRate;
-	if (serialPort == ESP8266_SOFTWARE_SERIAL)
+	//salvo la serial da utilizzare
+	swSerial.begin(baudRate);
+	_serial = &swSerial;
+	
+	if (test())
 	{
-		swSerial.begin(baudRate);
-		_serial = &swSerial;
+		if (!reset())
+			return false;
+		if (!setMux(1))
+			return false;
+#ifdef ESP8266_DISABLE_ECHO
+		if (!echo(false))
+			return false;
+#endif
+		return true;
 	}
-	else if (serialPort == ESP8266_HARDWARE_SERIAL)
-	{
-		Serial.begin(baudRate);
-		_serial = &Serial;
-	}
+	
+	return false;
+
+}
+
+bool ESP8266Class::begin(Stream &serial)
+{
+
+	//salvo la serial da utilizzare
+	_serial = &serial;
 	
 	if (test())
 	{
