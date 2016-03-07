@@ -27,6 +27,8 @@ Distributed as-is; no warranty is given.
 #include "Client.h"
 #include "ESP8266WiFi.h"
 
+#define BUFFER_IPD_LENGTH 15
+
 class ESP8266Client : public Client {
 	
 public:
@@ -61,6 +63,14 @@ private:
 	static uint16_t _srcport;
 	uint16_t  _socket;
 	bool ipMuxEn;
+
+	//variable to clean output
+	bool _receivedIPD; //indica se ho già ricevuto l'header IPD
+	char _bufferIPD[BUFFER_IPD_LENGTH]; //contine l'header IPD
+	int _bufferIPDIndex; //indice del buffer IPD
+
+	int _bodyLen; //lunghezza del body della risposta
+	int _bodyPos; //posizione di lettura del buffer di IPD
 	
 
 	uint8_t getFirstSocket();

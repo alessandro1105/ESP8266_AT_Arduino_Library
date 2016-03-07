@@ -47,11 +47,10 @@ bool ESP8266Class::begin(unsigned long baudRate)
 	//salvo la serial da utilizzare
 	swSerial.begin(baudRate);
 	_serial = &swSerial;
+	_baud = baudRate;
 	
 	if (test())
 	{
-		if (!reset())
-			return false;
 		if (!setMux(1))
 			return false;
 #ifdef ESP8266_DISABLE_ECHO
@@ -65,16 +64,15 @@ bool ESP8266Class::begin(unsigned long baudRate)
 
 }
 
-bool ESP8266Class::begin(Stream &serial)
+bool ESP8266Class::begin(Stream &serial, unsigned long baudRate)
 {
 
 	//salvo la serial da utilizzare
 	_serial = &serial;
+	_baud = baudRate;
 	
 	if (test())
 	{
-		if (!reset())
-			return false;
 		if (!setMux(1))
 			return false;
 #ifdef ESP8266_DISABLE_ECHO

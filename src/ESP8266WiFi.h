@@ -120,7 +120,7 @@ public:
 	ESP8266Class();
 	
 	bool begin(unsigned long baudRate = ESP8266_BAUDRATE);
-	bool begin(Stream &serial);
+	bool begin(Stream &serial, unsigned long baudRate);
 	
 	///////////////////////
 	// Basic AT Commands //
@@ -172,6 +172,7 @@ public:
 	
 protected:
     Stream* _serial;
+    unsigned long _baud;
 	
 private:
 	//////////////////////////

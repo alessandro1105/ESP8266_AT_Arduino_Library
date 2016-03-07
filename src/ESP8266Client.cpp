@@ -25,11 +25,19 @@ Distributed as-is; no warranty is given.
 
 ESP8266Client::ESP8266Client()
 {
+	_receivedIPD = false;
+	_bodyLen = 0;
+	_bodyPos = 0;
+	_bufferIPDIndex = 0;
 }
 
 ESP8266Client::ESP8266Client(uint8_t sock)
 {
 	_socket = sock;
+	_receivedIPD = false;
+	_bodyLen = 0;
+	_bodyPos = 0;
+	_bufferIPDIndex = 0;
 }
 
 uint8_t ESP8266Client::status()
@@ -85,20 +93,65 @@ size_t ESP8266Client::write(const uint8_t *buf, size_t size)
 
 int ESP8266Client::available()
 {
-	// int available = esp8266.available();
-	// if (available == 0)
-	// {
-	// 	// Delay for the amount of time it'd take to receive one character
-	// 	delayMicroseconds((1 / esp8266._baud) * 10 * 1E6);
-	// 	// Check again just to be sure:
-	// 	available = esp8266.available();
-	// }
-	return esp8266.available();
+	if (!_receivedIPD) { //se non ho acora ricevuto l'header IPD
+		return esp8266.available();
+	} else {
+		//verifico se ho raggiunto la fine del body della risposta
+		if (_bodyPos < _bodyLen) {
+			return esp8266.available(); //controllo se ci sono caratteri disponibili
+		
+		} else {
+			return 0; //ho raggiunto la fine del body (ignoro i caratteri successivi)
+		}
+	}
 }
 
 int ESP8266Client::read()
 {
-	return esp8266.read();
+	if (_receivedIPD) { //se ho già ricevuto l'header del body
+
+		if (available()) { //se ci sono caratteri
+			_bodyPos++;
+			return esp8266.read();
+		} else {
+			return 0;
+		}
+
+	} else { //cerco per l'header +IPD,0,943:
+
+		while(esp8266.available() and _bufferIPDIndex < BUFFER_IPD_LENGTH) {
+
+			char c = esp8266.read();
+
+			if (c == ':') { //se ho raggiunto il carattere terminatore dell'header IPD
+
+				//inserisco il terminatore di stringa
+				_bufferIPD[_bufferIPDIndex] = 0;
+				//cerco +IPD,
+				char * p = strstr(_bufferIPD, "+IPD,");
+				//salto "+IPD,"
+				p += 5;
+				//cerco ,
+				p = strstr(p, ",");
+				//salto , (salto l'indicazione del socket usato)
+				p += 1;
+				//salvo la dimensione del body
+				_bodyLen = atoi(p);
+
+				_receivedIPD = true; //setto che ho ricevuto l'header IPD
+
+				//richiamo read per passare il primo carattere disponibile
+				return read();
+
+			} else {
+				_bufferIPD[_bufferIPDIndex++] = c;
+			}
+
+		}
+
+	}
+
+	//return esp8266.read();
 }
 
 int ESP8266Client::read(uint8_t *buf, size_t size)
