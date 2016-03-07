@@ -8,6 +8,7 @@ esp8266	KEYWORD1
 ESP8266Class	KEYWORD1
 ESP8266Client	KEYWORD1
 ESP8266Server	KEYWORD1
+ESP8266WiFi 	KEYWORD1
 
 ################################################################
 # Methods and Functions

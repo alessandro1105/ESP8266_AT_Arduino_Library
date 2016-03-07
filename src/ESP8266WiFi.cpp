@@ -28,7 +28,7 @@ Distributed as-is; no warranty is given.
 ////////////////////////
 // Buffer Definitions //
 ////////////////////////
-#define ESP8266_RX_BUFFER_LEN 128 // Number of bytes in the serial receive buffer
+#define ESP8266_RX_BUFFER_LEN 64 // Number of bytes in the serial receive buffer (ORGINAL WAS 128)
 char esp8266RxBuffer[ESP8266_RX_BUFFER_LEN];
 unsigned int bufferHead; // Holds position of latest byte placed in buffer.
 
@@ -93,7 +93,7 @@ bool ESP8266Class::test()
 {
 	sendCommand(ESP8266_TEST); // Send AT
 
-	if (readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0)
+	if (readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0)
 		return true;
 	
 	return false;
@@ -103,7 +103,7 @@ bool ESP8266Class::reset()
 {
 	sendCommand(ESP8266_RESET); // Send AT+RST
 	
-	if (readForResponse(RESPONSE_READY, COMMAND_RESET_TIMEOUT) > 0)
+	if (readForResponsePROGMEM(RESPONSE_READY, COMMAND_RESET_TIMEOUT) > 0)
 		return true;
 	
 	return false;
@@ -116,7 +116,7 @@ bool ESP8266Class::echo(bool enable)
 	else
 		sendCommand(ESP8266_ECHO_DISABLE);
 	
-	if (readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0)
+	if (readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0)
 		return true;
 	
 	return false;
@@ -135,7 +135,7 @@ bool ESP8266Class::setBaud(unsigned long baud)
 	// Send AT+UART=baud,databits,stopbits,parity,flowcontrol
 	sendCommand(ESP8266_UART, ESP8266_CMD_SETUP, parameters);
 	
-	if (readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0)
+	if (readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0)
 		return true;
 	
 	return false;
@@ -149,7 +149,7 @@ int16_t ESP8266Class::getVersion(char * ATversion)
 	//                   OK\r\n
 	// (~101 characters)
 	// Look for "OK":
-	int16_t rsp = (readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0);
+	int16_t rsp = (readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT) > 0);
 	if (rsp > 0)
 	{
 		char *p = esp8266RxBuffer;
@@ -177,7 +177,7 @@ int16_t ESP8266Class::getMode()
 	
 	// Example response: \r\nAT+CWMODE_CUR?\r+CWMODE_CUR:2\r\n\r\nOK\r\n
 	// Look for the OK:
-	int16_t rsp = readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	int16_t rsp = readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 	if (rsp > 0)
 	{
 		// Then get the number after ':':
@@ -206,7 +206,7 @@ int16_t ESP8266Class::setMode(esp8266_wifi_mode mode)
 	sprintf(modeChar, "%d", mode);
 	sendCommand(ESP8266_WIFI_MODE, ESP8266_CMD_SETUP, modeChar);
 	
-	return readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	return readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 }
 
 int16_t ESP8266Class::connect(const char * ssid)
@@ -221,28 +221,37 @@ int16_t ESP8266Class::connect(const char * ssid)
 //    - Fail: <0 (esp8266_cmd_rsp)
 int16_t ESP8266Class::connect(const char * ssid, const char * pwd)
 {
-	_serial->print("AT");
-	_serial->print(ESP8266_CONNECT_AP);
-	_serial->print("=\"");
+	_serial->print(F("AT"));
+
+	//---PATCH PROGMEM
+	int len = strlen_P(ESP8266_CONNECT_AP);
+	for (int i = 0; i < len; i++)
+	{
+		char c =  pgm_read_byte_near(ESP8266_CONNECT_AP + i);
+		_serial->print(c);
+	}
+	//---PATCH PROGMEM
+	
+	_serial->print(F("=\""));
 	_serial->print(ssid);
-	_serial->print("\"");
+	_serial->print(F("\""));
 	if (pwd != NULL)
 	{
-		_serial->print(',');
-		_serial->print("\"");
+		_serial->print(F(","));
+		_serial->print(F("\""));
 		_serial->print(pwd);
-		_serial->print("\"");
+		_serial->print(F("\""));
 	}
-	_serial->print("\r\n");
+	_serial->print(F("\r\n"));
 	
-	return readForResponses(RESPONSE_OK, RESPONSE_FAIL, WIFI_CONNECT_TIMEOUT);
+	return readForResponsesPROGMEM(RESPONSE_OK, RESPONSE_FAIL, WIFI_CONNECT_TIMEOUT);
 }
 
 int16_t ESP8266Class::getAP(char * ssid)
 {
 	sendCommand(ESP8266_CONNECT_AP, ESP8266_CMD_QUERY); // Send "AT+CWJAP?"
 	
-	int16_t rsp = readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	int16_t rsp = readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 	// Example Responses: No AP\r\n\r\nOK\r\n
 	// - or -
 	// +CWJAP:"WiFiSSID","00:aa:bb:cc:dd:ee",6,-45\r\n\r\nOK\r\n
@@ -252,11 +261,24 @@ int16_t ESP8266Class::getAP(char * ssid)
 		if (strstr(esp8266RxBuffer, "No AP") != NULL)
 			return 0;
 		
+		
+		//---PATCH PROGMEM
+		int len = strlen_P(ESP8266_CONNECT_AP);
+		//creo buffer
+		char cmd[len +1]; //compreso terminatore
+
+		for (int i = 0; i <= len; i++)
+		{
+			char c =  pgm_read_byte_near(ESP8266_CONNECT_AP + i);
+			cmd[i] = c;
+		}
+		//---PATCH PROGMEM
+
 		// Look for "+CWJAP"
-		char * p = strstr(esp8266RxBuffer, ESP8266_CONNECT_AP);
+		char * p = strstr(esp8266RxBuffer, cmd);
 		if (p != NULL)
 		{
-			p += strlen(ESP8266_CONNECT_AP) + 2;
+			p += strlen(cmd) + 2;
 			char * q = strchr(p, '"');
 			if (q == NULL) return ESP8266_RSP_UNKNOWN;
 			strncpy(ssid, p, q-p); // Copy string to temp char array:
@@ -276,7 +298,7 @@ int16_t ESP8266Class::disconnect()
 	sendCommand(ESP8266_DISCONNECT); // Send AT+CWQAP
 	// Example response: \r\n\r\nOK\r\nWIFI DISCONNECT\r\n
 	// "WIFI DISCONNECT" comes up to 500ms _after_ OK. 
-	int16_t rsp = readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	int16_t rsp = readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 	if (rsp > 0)
 	{
 		rsp = readForResponse("WIFI DISCONNECT", COMMAND_RESPONSE_TIMEOUT);
@@ -323,7 +345,7 @@ int16_t ESP8266Class::updateStatus()
 	// STATUS:3\r\n
 	// +CIPSTATUS:0,"TCP","192.168.0.100",54723,1\r\n
 	// +CIPSTATUS:1,"TCP","192.168.0.101",54724,1\r\n\r\nOK\r\n 
-	int16_t rsp = readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	int16_t rsp = readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 	if (rsp > 0)
 	{
 		char * p = searchBuffer("STATUS:");
@@ -409,7 +431,7 @@ IPAddress ESP8266Class::localIP()
 	//                   \r\n
 	//                   OK\r\n
 	// Look for the OK:
-	int16_t rsp = readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	int16_t rsp = readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 	if (rsp > 0)
 	{
 
@@ -445,28 +467,38 @@ IPAddress ESP8266Class::localIP()
 
 int16_t ESP8266Class::tcpConnect(uint8_t linkID, const char * destination, uint16_t port, uint16_t keepAlive)
 {
-	print("AT");
-	print(ESP8266_TCP_CONNECT);
-	print('=');
-	print(linkID);
-	print(',');
-	print("\"TCP\",");
-	print("\"");
-	print(destination);
-	print("\",");
-	print(port);
+
+	_serial->print(F("AT"));
+
+	//---PATCH PROGMEM
+	int len = strlen_P(ESP8266_TCP_CONNECT);
+	for (int i = 0; i < len; i++)
+	{
+		char c =  pgm_read_byte_near(ESP8266_TCP_CONNECT + i);
+		_serial->print(c);
+	}
+	//---PATCH PROGMEM
+
+	_serial->print(F("="));
+	_serial->print(linkID);
+	_serial->print(F(","));
+	_serial->print(F("\"TCP\","));
+	_serial->print(F("\""));
+	_serial->print(destination);
+	_serial->print(F("\","));
+	_serial->print(port);
 	if (keepAlive > 0)
 	{
-		print(',');
+		_serial->print(F(","));
 		// keepAlive is in units of 500 milliseconds.
 		// Max is 7200 * 500 = 3600000 ms = 60 minutes.
-		print(keepAlive / 500);
+		_serial->print(keepAlive / 500);
 	}
-	print("\r\n");
+	_serial->print(F("\r\n"));
 	// Example good: CONNECT\r\n\r\nOK\r\n
 	// Example bad: DNS Fail\r\n\r\nERROR\r\n
 	// Example meh: ALREADY CONNECTED\r\n\r\nERROR\r\n
-	int16_t rsp = readForResponses(RESPONSE_OK, RESPONSE_ERROR, CLIENT_CONNECT_TIMEOUT);
+	int16_t rsp = readForResponsesPROGMEM(RESPONSE_OK, RESPONSE_ERROR, CLIENT_CONNECT_TIMEOUT);
 	
 	if (rsp < 0)
 	{
@@ -490,11 +522,11 @@ int16_t ESP8266Class::tcpSend(uint8_t linkID, const uint8_t *buf, size_t size)
 	sprintf(params, "%d,%d", linkID, size);
 	sendCommand(ESP8266_TCP_SEND, ESP8266_CMD_SETUP, params);
 	
-	int16_t rsp = readForResponses(RESPONSE_OK, RESPONSE_ERROR, COMMAND_RESPONSE_TIMEOUT);
+	int16_t rsp = readForResponsesPROGMEM(RESPONSE_OK, RESPONSE_ERROR, COMMAND_RESPONSE_TIMEOUT);
 	//if (rsp > 0)
 	if (rsp != ESP8266_RSP_FAIL)
 	{
-		print((const char *)buf);
+		_serial->print((const char *)buf);
 		
 		rsp = readForResponse("SEND OK", COMMAND_RESPONSE_TIMEOUT);
 		
@@ -513,7 +545,7 @@ int16_t ESP8266Class::close(uint8_t linkID)
 	
 	// Eh, client virtual function doesn't have a return value.
 	// We'll wait for the OK or timeout anyway.
-	return readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	return readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 }
 
 int16_t ESP8266Class::setTransferMode(uint8_t mode)
@@ -522,7 +554,7 @@ int16_t ESP8266Class::setTransferMode(uint8_t mode)
 	params[0] = (mode > 0) ? '1' : '0';
 	sendCommand(ESP8266_TRANSMISSION_MODE, ESP8266_CMD_SETUP, params);
 	
-	return readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	return readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 }
 
 int16_t ESP8266Class::setMux(uint8_t mux)
@@ -531,7 +563,7 @@ int16_t ESP8266Class::setMux(uint8_t mux)
 	params[0] = (mux > 0) ? '1' : '0';
 	sendCommand(ESP8266_TCP_MULTIPLE, ESP8266_CMD_SETUP, params);
 	
-	return readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
+	return readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 }
 
 int16_t ESP8266Class::configureTCPServer(uint16_t port, uint8_t create)
@@ -541,7 +573,7 @@ int16_t ESP8266Class::configureTCPServer(uint16_t port, uint8_t create)
 	sprintf(params, "%d,%d", create, port);
 	sendCommand(ESP8266_SERVER_CONFIG, ESP8266_CMD_SETUP, params);
 	
-	return readForResponse(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);	
+	return readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);	
 }
 
 //////////////////////////////
@@ -579,15 +611,25 @@ void ESP8266Class::flush()
 
 void ESP8266Class::sendCommand(const char * cmd, enum esp8266_command_type type, const char * params)
 {
-	_serial->print("AT");
-	_serial->print(cmd);
+	_serial->print(F("AT"));
+
+	//---PATCH PROGMEM
+	int len = strlen_P(cmd);
+	for (int i = 0; i < len; i++)
+	{
+		char c =  pgm_read_byte_near(cmd + i);
+		_serial->print(c);
+	}
+	//---PATCH PROGMEM
+
 	if (type == ESP8266_CMD_QUERY) {
-		_serial->print('?');
+		_serial->print(F("?"));
 	} else if (type == ESP8266_CMD_SETUP) {
-		_serial->print("=");
+		_serial->print(F("="));
 		_serial->print(params);		
 	}
-	_serial->print("\r\n");
+	_serial->print(F("\r\n"));
+
 }
 
 int16_t ESP8266Class::readForResponse(const char * rsp, unsigned int timeout)
@@ -636,6 +678,51 @@ int16_t ESP8266Class::readForResponses(const char * pass, const char * fail, uns
 		return ESP8266_RSP_TIMEOUT; // Return the timeout error code
 }
 
+int16_t ESP8266Class::readForResponsePROGMEM(const char * rspPROGMEM, unsigned int timeout)
+{
+	//---PATCH PROGMEM
+	int len = strlen_P(rspPROGMEM);
+	//creo buffer
+	char rsp[len +1]; //compreso terminatore
+
+	for (int i = 0; i <= len; i++)
+	{
+		char c =  pgm_read_byte_near(rspPROGMEM + i);
+		rsp[i] = c;
+	}
+	//---PATCH PROGMEM
+
+	return readForResponse(rsp, timeout);
+}
+
+//---PROGMEM VARIANT
+int16_t ESP8266Class::readForResponsesPROGMEM(const char * passPROGMEM, const char * failPROGMEM, unsigned int timeout)
+{
+	//---PATCH PROGMEM
+	int len = strlen_P(passPROGMEM);
+	//creo buffer
+	char pass[len +1]; //compreso terminatore
+
+	for (int i = 0; i <= len; i++)
+	{
+		char c =  pgm_read_byte_near(passPROGMEM + i);
+		pass[i] = c;
+	}
+
+	len = strlen_P(failPROGMEM);
+	//creo buffer
+	char fail[len +1]; //compreso terminatore
+
+	for (int i = 0; i <= len; i++)
+	{
+		char c =  pgm_read_byte_near(failPROGMEM + i);
+		fail[i] = c;
+	}
+	//---PATCH PROGMEM
+
+	return readForResponses(pass, fail, timeout);
+}
+
 //////////////////
 // Buffer Stuff //
 //////////////////
@@ -659,6 +746,7 @@ unsigned int ESP8266Class::readByteToBuffer()
 
 char * ESP8266Class::searchBuffer(const char * test)
 {
+
 	int bufferLen = strlen((const char *)esp8266RxBuffer);
 	// If our buffer isn't full, just do an strstr
 	if (bufferLen < ESP8266_RX_BUFFER_LEN)

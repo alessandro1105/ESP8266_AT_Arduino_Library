@@ -181,6 +181,9 @@ private:
 	void sendCommand(const char * cmd, enum esp8266_command_type type = ESP8266_CMD_EXECUTE, const char * params = NULL);
 	int16_t readForResponse(const char * rsp, unsigned int timeout);
 	int16_t readForResponses(const char * pass, const char * fail, unsigned int timeout);
+
+	int16_t readForResponsePROGMEM(const char * rsp, unsigned int timeout); //PROGMEM variant 
+	int16_t readForResponsesPROGMEM(const char * pass, const char * fail, unsigned int timeout); //PROGMEM variant
 	
 	//////////////////
 	// Buffer Stuff // 

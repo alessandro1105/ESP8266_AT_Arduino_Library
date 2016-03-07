@@ -74,6 +74,7 @@ int ESP8266Client::connect(const char* host, uint16_t port, uint32_t keepAlive)
 	
     if (_socket != ESP8266_SOCK_NOT_AVAIL)
     {
+
 		esp8266._state[_socket] = TAKEN;
 		int16_t rsp = esp8266.tcpConnect(_socket, host, port, keepAlive);
 		
@@ -119,7 +120,7 @@ int ESP8266Client::read()
 
 	} else { //cerco per l'header +IPD,0,943:
 
-		while(esp8266.available() and _bufferIPDIndex < BUFFER_IPD_LENGTH) {
+		while(esp8266.available() and _bufferIPDIndex < BUFFER_IPD_SIZE) {
 
 			char c = esp8266.read();
 
@@ -156,12 +157,12 @@ int ESP8266Client::read()
 
 int ESP8266Client::read(uint8_t *buf, size_t size)
 {
-	if (esp8266.available() < size)
+	if (available() < size)
 		return 0;
 	
 	for (int i=0; i<size; i++)
 	{
-		buf[i] = esp8266.read();
+		buf[i] = read();
 	}
 	
 	return 1;
@@ -203,6 +204,64 @@ ESP8266Client::operator bool()
 	return connected();
 }
 
+size_t ESP8266Client::print(const __FlashStringHelper *s)
+{
+	PGM_P p = reinterpret_cast<PGM_P>(s);
+	char buf[BUFFER_PRINT_SIZE];
+	uint8_t iBuf = 0;
+	size_t n = 0;
+	while (1)
+	{
+		unsigned char c = pgm_read_byte(p++);
+		if(c == 0)
+		{
+			if(iBuf > 0)
+				n += write(buf, iBuf);
+			return n;
+		}
+		buf[iBuf++] = c;
+		if(iBuf >= BUFFER_PRINT_SIZE)
+		{
+			n += write(buf, BUFFER_PRINT_SIZE);
+			iBuf = 0;
+		}
+	}
+}
+
+size_t ESP8266Client::println(const __FlashStringHelper *s)
+{
+	PGM_P p = reinterpret_cast<PGM_P>(s);
+	char buf[BUFFER_PRINT_SIZE];
+	uint8_t iBuf = 0;
+	size_t n = 0;
+	while (1)
+	{
+		unsigned char c = pgm_read_byte(p++);
+		if(c == 0)
+		{
+			if(iBuf > 0)
+				n += write(buf, iBuf);
+			break;
+		}
+		buf[iBuf++] = c;
+		if(iBuf >= BUFFER_PRINT_SIZE)
+		{	
+			n += write(buf, BUFFER_PRINT_SIZE);
+			iBuf = 0;
+		}
+	}
+
+	//azzero il buffer per stampare \r\n
+	iBuf = 0;
+
+	buf[iBuf++] = '\r';
+	buf[iBuf++] = '\n';
+	n += write(buf, iBuf);
+	return n;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 // Private Methods
 uint8_t ESP8266Client::getFirstSocket()
 {
@@ -216,3 +275,4 @@ uint8_t ESP8266Client::getFirstSocket()
 	}
 	return ESP8266_SOCK_NOT_AVAIL;
 }
+

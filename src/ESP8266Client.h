@@ -27,7 +27,8 @@ Distributed as-is; no warranty is given.
 #include "Client.h"
 #include "ESP8266WiFi.h"
 
-#define BUFFER_IPD_LENGTH 15
+#define BUFFER_IPD_SIZE 15
+#define BUFFER_PRINT_SIZE 16
 
 class ESP8266Client : public Client {
 	
@@ -58,6 +59,11 @@ public:
 	friend class WiFiServer;
 
 	using Print::write;
+	using Print::print;
+	using Print::println;
+
+	size_t print(const __FlashStringHelper *s);
+	size_t println(const __FlashStringHelper *s);
 
 private:
 	static uint16_t _srcport;
@@ -66,7 +72,7 @@ private:
 
 	//variable to clean output
 	bool _receivedIPD; //indica se ho già ricevuto l'header IPD
-	char _bufferIPD[BUFFER_IPD_LENGTH]; //contine l'header IPD
+	char _bufferIPD[BUFFER_IPD_SIZE]; //contine l'header IPD
 	int _bufferIPDIndex; //indice del buffer IPD
 
 	int _bodyLen; //lunghezza del body della risposta

@@ -21,37 +21,37 @@ Distributed as-is; no warranty is given.
 //////////////////////
 // Common Responses //
 //////////////////////
-const char RESPONSE_OK[] = "OK\r\n";
-const char RESPONSE_ERROR[] = "ERROR\r\n";
-const char RESPONSE_FAIL[] = "FAIL";
-const char RESPONSE_READY[] = "READY!";
+const char RESPONSE_OK[] PROGMEM = "OK\r\n";
+const char RESPONSE_ERROR[] PROGMEM = "ERROR\r\n";
+const char RESPONSE_FAIL[] PROGMEM = "FAIL";
+const char RESPONSE_READY[] PROGMEM = "READY!";
 
 ///////////////////////
 // Basic AT Commands //
 ///////////////////////
-const char ESP8266_TEST[] = "";	// Test AT startup
-const char ESP8266_RESET[] = "+RST"; // Restart module
-const char ESP8266_VERSION[] = "+GMR"; // View version info
-const char ESP8266_ECHO_ENABLE[] = "E1"; // AT commands echo
-const char ESP8266_ECHO_DISABLE[] = "E0"; // AT commands echo
-const char ESP8266_UART[] = "+UART"; // UART configuration
+const char ESP8266_TEST[] PROGMEM = "";	// Test AT startup
+const char ESP8266_RESET[] PROGMEM = "+RST"; // Restart module
+const char ESP8266_VERSION[] PROGMEM = "+GMR"; // View version info
+const char ESP8266_ECHO_ENABLE[] PROGMEM = "E1"; // AT commands echo
+const char ESP8266_ECHO_DISABLE[] PROGMEM = "E0"; // AT commands echo
+const char ESP8266_UART[] PROGMEM = "+UART"; // UART configuration
 
 ////////////////////
 // WiFi Functions //
 ////////////////////
-const char ESP8266_WIFI_MODE[] = "+CWMODE"; // WiFi mode (sta/AP/sta+AP)
-const char ESP8266_CONNECT_AP[] = "+CWJAP"; // Connect to AP
-const char ESP8266_DISCONNECT[] = "+CWQAP"; // Disconnect from AP
+const char ESP8266_WIFI_MODE[] PROGMEM = "+CWMODE"; // WiFi mode (sta/AP/sta+AP)
+const char ESP8266_CONNECT_AP[] PROGMEM = "+CWJAP"; // Connect to AP
+const char ESP8266_DISCONNECT[] PROGMEM = "+CWQAP"; // Disconnect from AP
 
 /////////////////////
 // TCP/IP Commands //
 /////////////////////
-const char ESP8266_TCP_STATUS[] = "+CIPSTATUS"; // Get connection status
-const char ESP8266_TCP_CONNECT[] = "+CIPSTART"; // Establish TCP connection or register UDP port
-const char ESP8266_TCP_SEND[] = "+CIPSEND"; // Send Data
-const char ESP8266_TCP_CLOSE[] = "+CIPCLOSE"; // Close TCP/UDP connection
-const char ESP8266_GET_LOCAL_IP[] = "+CIFSR"; // Get local IP address
-const char ESP8266_TCP_MULTIPLE[] = "+CIPMUX"; // Set multiple connections mode
-const char ESP8266_SERVER_CONFIG[] = "+CIPSERVER"; // Configure as server
-const char ESP8266_TRANSMISSION_MODE[] = "+CIPMODE"; // Set transmission mode
+const char ESP8266_TCP_STATUS[] PROGMEM = "+CIPSTATUS"; // Get connection status
+const char ESP8266_TCP_CONNECT[] PROGMEM = "+CIPSTART"; // Establish TCP connection or register UDP port
+const char ESP8266_TCP_SEND[] PROGMEM = "+CIPSEND"; // Send Data
+const char ESP8266_TCP_CLOSE[] PROGMEM = "+CIPCLOSE"; // Close TCP/UDP connection
+const char ESP8266_GET_LOCAL_IP[] PROGMEM = "+CIFSR"; // Get local IP address
+const char ESP8266_TCP_MULTIPLE[] PROGMEM = "+CIPMUX"; // Set multiple connections mode
+const char ESP8266_SERVER_CONFIG[] PROGMEM = "+CIPSERVER"; // Configure as server
+const char ESP8266_TRANSMISSION_MODE[] PROGMEM = "+CIPMODE"; // Set transmission mode
 
