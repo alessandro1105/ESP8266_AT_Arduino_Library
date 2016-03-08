@@ -24,7 +24,6 @@ Distributed as-is; no warranty is given.
 const char RESPONSE_OK[] PROGMEM = "OK\r\n";
 const char RESPONSE_ERROR[] PROGMEM = "ERROR\r\n";
 const char RESPONSE_FAIL[] PROGMEM = "FAIL";
-const char RESPONSE_READY[] PROGMEM = "READY!";
 
 ///////////////////////
 // Basic AT Commands //

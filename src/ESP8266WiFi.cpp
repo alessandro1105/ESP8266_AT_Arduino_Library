@@ -51,8 +51,14 @@ bool ESP8266Class::begin(unsigned long baudRate)
 	
 	if (test())
 	{
+		if (!setMode(ESP8266_MODE_STA))
+			return false;
+		// if(!reset())
+		// 	return false;
 		if (!setMux(1))
 			return false;
+		// if (!setTransferMode(0))
+		// 	return false;
 #ifdef ESP8266_DISABLE_ECHO
 		if (!echo(false))
 			return false;
@@ -73,8 +79,14 @@ bool ESP8266Class::begin(Stream &serial, unsigned long baudRate)
 	
 	if (test())
 	{
+		if (!setMode(ESP8266_MODE_STA))
+			return false;
+		// if(!reset())
+		// 	return false;
 		if (!setMux(1))
 			return false;
+		// if (!setTransferMode(0))
+		// 	return false;
 #ifdef ESP8266_DISABLE_ECHO
 		if (!echo(false))
 			return false;
@@ -102,9 +114,10 @@ bool ESP8266Class::test()
 bool ESP8266Class::reset()
 {
 	sendCommand(ESP8266_RESET); // Send AT+RST
-	
-	if (readForResponsePROGMEM(RESPONSE_READY, COMMAND_RESET_TIMEOUT) > 0)
+		
+	if (readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESET_TIMEOUT) > 0) {
 		return true;
+	}
 	
 	return false;
 }
@@ -221,7 +234,7 @@ int16_t ESP8266Class::connect(const char * ssid)
 //    - Fail: <0 (esp8266_cmd_rsp)
 int16_t ESP8266Class::connect(const char * ssid, const char * pwd)
 {
-	_serial->print(F("AT"));
+	_serial->print("AT");
 
 	//---PATCH PROGMEM
 	int len = strlen_P(ESP8266_CONNECT_AP);
@@ -232,17 +245,17 @@ int16_t ESP8266Class::connect(const char * ssid, const char * pwd)
 	}
 	//---PATCH PROGMEM
 	
-	_serial->print(F("=\""));
+	_serial->print("=\"");
 	_serial->print(ssid);
-	_serial->print(F("\""));
+	_serial->print("\"");
 	if (pwd != NULL)
 	{
-		_serial->print(F(","));
-		_serial->print(F("\""));
+		_serial->print(",");
+		_serial->print("\"");
 		_serial->print(pwd);
-		_serial->print(F("\""));
+		_serial->print("\"");
 	}
-	_serial->print(F("\r\n"));
+	_serial->print("\r\n");
 	
 	return readForResponsesPROGMEM(RESPONSE_OK, RESPONSE_FAIL, WIFI_CONNECT_TIMEOUT);
 }
@@ -301,7 +314,7 @@ int16_t ESP8266Class::disconnect()
 	int16_t rsp = readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 	if (rsp > 0)
 	{
-		rsp = readForResponse("WIFI DISCONNECT", COMMAND_RESPONSE_TIMEOUT);
+		rsp = readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESPONSE_TIMEOUT);
 		if (rsp > 0)
 			return rsp;
 		return 1;
@@ -465,36 +478,45 @@ IPAddress ESP8266Class::localIP()
 // TCP/IP Commands //
 /////////////////////
 
-int16_t ESP8266Class::tcpConnect(uint8_t linkID, const char * destination, uint16_t port, uint16_t keepAlive)
+int16_t ESP8266Class::tcpConnect(uint8_t linkID, const char * destination, uint16_t port)
 {
-
-	_serial->print(F("AT"));
 
 	//---PATCH PROGMEM
 	int len = strlen_P(ESP8266_TCP_CONNECT);
-	for (int i = 0; i < len; i++)
+
+	char cmd[len+1];
+
+	for (int i = 0; i <= len; i++)
 	{
-		char c =  pgm_read_byte_near(ESP8266_TCP_CONNECT + i);
-		_serial->print(c);
+		char c = pgm_read_byte_near(ESP8266_TCP_CONNECT + i);
+		cmd[i] = c;
 	}
 	//---PATCH PROGMEM
 
-	_serial->print(F("="));
+	// Serial.print("AT");
+	// Serial.print(cmd);
+	// Serial.print("=");
+	// Serial.print(linkID);
+	// Serial.print(",");
+	// Serial.print("\"TCP\",");
+	// Serial.print("\"");
+	// Serial.print(destination);
+	// Serial.print("\",");
+	// Serial.print(port);
+	// Serial.print("\r\n");
+
+
+	_serial->print("AT");
+	_serial->print(cmd);
+	_serial->print("=");
 	_serial->print(linkID);
-	_serial->print(F(","));
-	_serial->print(F("\"TCP\","));
-	_serial->print(F("\""));
+	_serial->print(",");
+	_serial->print("\"TCP\",");
+	_serial->print("\"");
 	_serial->print(destination);
-	_serial->print(F("\","));
+	_serial->print("\",");
 	_serial->print(port);
-	if (keepAlive > 0)
-	{
-		_serial->print(F(","));
-		// keepAlive is in units of 500 milliseconds.
-		// Max is 7200 * 500 = 3600000 ms = 60 minutes.
-		_serial->print(keepAlive / 500);
-	}
-	_serial->print(F("\r\n"));
+	_serial->print("\r\n");
 	// Example good: CONNECT\r\n\r\nOK\r\n
 	// Example bad: DNS Fail\r\n\r\nERROR\r\n
 	// Example meh: ALREADY CONNECTED\r\n\r\nERROR\r\n
@@ -609,26 +631,29 @@ void ESP8266Class::flush()
 // Private, Low-Level, Ugly, Hardware Functions //
 //////////////////////////////////////////////////
 
-void ESP8266Class::sendCommand(const char * cmd, enum esp8266_command_type type, const char * params)
+void ESP8266Class::sendCommand(const char * cmdPROGMEM, enum esp8266_command_type type, const char * params)
 {
-	_serial->print(F("AT"));
-
 	//---PATCH PROGMEM
-	int len = strlen_P(cmd);
-	for (int i = 0; i < len; i++)
+	int len = strlen_P(cmdPROGMEM);
+
+	char cmd[len+1];
+
+	for (int i = 0; i <= len; i++)
 	{
-		char c =  pgm_read_byte_near(cmd + i);
-		_serial->print(c);
+		char c =  pgm_read_byte_near(cmdPROGMEM + i);
+		cmd[i] = c;
 	}
 	//---PATCH PROGMEM
 
+	_serial->print("AT");
+	_serial->print(cmd);
 	if (type == ESP8266_CMD_QUERY) {
-		_serial->print(F("?"));
+		_serial->print("?");
 	} else if (type == ESP8266_CMD_SETUP) {
-		_serial->print(F("="));
+		_serial->print("=");
 		_serial->print(params);		
 	}
-	_serial->print(F("\r\n"));
+	_serial->print("\r\n");
 
 }
 

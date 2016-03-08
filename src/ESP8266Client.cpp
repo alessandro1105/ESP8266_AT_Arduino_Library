@@ -76,7 +76,7 @@ int ESP8266Client::connect(const char* host, uint16_t port, uint32_t keepAlive)
     {
 
 		esp8266._state[_socket] = TAKEN;
-		int16_t rsp = esp8266.tcpConnect(_socket, host, port, keepAlive);
+		int16_t rsp = esp8266.tcpConnect(_socket, host, port);
 		
 		return rsp;
 	}

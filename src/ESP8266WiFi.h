@@ -148,7 +148,7 @@ public:
 	/////////////////////
 	int16_t status();
 	int16_t updateStatus();
-	int16_t tcpConnect(uint8_t linkID, const char * destination, uint16_t port, uint16_t keepAlive);
+	int16_t tcpConnect(uint8_t linkID, const char * destination, uint16_t port);
 	int16_t tcpSend(uint8_t linkID, const uint8_t *buf, size_t size);
 	int16_t close(uint8_t linkID);
 	int16_t setTransferMode(uint8_t mode);
@@ -178,12 +178,12 @@ private:
 	//////////////////////////
 	// Command Send/Receive //
 	//////////////////////////
-	void sendCommand(const char * cmd, enum esp8266_command_type type = ESP8266_CMD_EXECUTE, const char * params = NULL);
+	void sendCommand(const char * cmdPROGMEM, enum esp8266_command_type type = ESP8266_CMD_EXECUTE, const char * params = NULL);
 	int16_t readForResponse(const char * rsp, unsigned int timeout);
 	int16_t readForResponses(const char * pass, const char * fail, unsigned int timeout);
 
-	int16_t readForResponsePROGMEM(const char * rsp, unsigned int timeout); //PROGMEM variant 
-	int16_t readForResponsesPROGMEM(const char * pass, const char * fail, unsigned int timeout); //PROGMEM variant
+	int16_t readForResponsePROGMEM(const char * rspPROGMEM, unsigned int timeout); //PROGMEM variant 
+	int16_t readForResponsesPROGMEM(const char * passPROGMEM, const char * failPROGMEM, unsigned int timeout); //PROGMEM variant
 	
 	//////////////////
 	// Buffer Stuff // 
