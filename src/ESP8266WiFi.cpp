@@ -493,19 +493,6 @@ int16_t ESP8266Class::tcpConnect(uint8_t linkID, const char * destination, uint1
 	}
 	//---PATCH PROGMEM
 
-	// Serial.print("AT");
-	// Serial.print(cmd);
-	// Serial.print("=");
-	// Serial.print(linkID);
-	// Serial.print(",");
-	// Serial.print("\"TCP\",");
-	// Serial.print("\"");
-	// Serial.print(destination);
-	// Serial.print("\",");
-	// Serial.print(port);
-	// Serial.print("\r\n");
-
-
 	_serial->print("AT");
 	_serial->print(cmd);
 	_serial->print("=");
