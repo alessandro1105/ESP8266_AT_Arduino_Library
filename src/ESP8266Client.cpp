@@ -115,7 +115,14 @@ int ESP8266Client::read()
 			_bodyPos++;
 			return esp8266.read();
 		} else {
-			return 0;
+			delay(10); //attendo 10ms per consentire alla serial di ricevere almeno un carattere
+			//return read();
+			if (available()) {
+				return esp8266.read();
+			} else {
+				Serial.println("Errore -1");
+				return -1;
+			}
 		}
 
 	} else { //cerco per l'header +IPD,0,943:
@@ -150,9 +157,9 @@ int ESP8266Client::read()
 
 		}
 
-	}
+		return read();
 
-	//return esp8266.read();
+	}
 }
 
 int ESP8266Client::read(uint8_t *buf, size_t size)

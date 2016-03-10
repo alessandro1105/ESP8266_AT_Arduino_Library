@@ -46,6 +46,7 @@ Distributed as-is; no warranty is given.
 #define ESP8266_MAX_SOCK_NUM 5
 #define ESP8266_SOCK_NOT_AVAIL 255
 
+//static SoftwareSerial swSerial(ESP8266_SW_TX, ESP8266_SW_RX);
 static SoftwareSerial swSerial(ESP8266_SW_TX, ESP8266_SW_RX);
 
 typedef enum esp8266_cmd_rsp {

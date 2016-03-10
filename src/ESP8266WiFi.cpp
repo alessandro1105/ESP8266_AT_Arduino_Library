@@ -51,14 +51,14 @@ bool ESP8266Class::begin(unsigned long baudRate)
 	
 	if (test())
 	{
+		if (!reset())
+			return false;
 		if (!setMode(ESP8266_MODE_STA))
 			return false;
-		// if(!reset())
-		// 	return false;
+		if (!setTransferMode(1))
+			return false;
 		if (!setMux(1))
 			return false;
-		// if (!setTransferMode(0))
-		// 	return false;
 #ifdef ESP8266_DISABLE_ECHO
 		if (!echo(false))
 			return false;
@@ -79,14 +79,14 @@ bool ESP8266Class::begin(Stream &serial, unsigned long baudRate)
 	
 	if (test())
 	{
+		if (!reset())
+			return false;
 		if (!setMode(ESP8266_MODE_STA))
 			return false;
-		// if(!reset())
-		// 	return false;
+		if (!setTransferMode(1))
+			return false;
 		if (!setMux(1))
 			return false;
-		// if (!setTransferMode(0))
-		// 	return false;
 #ifdef ESP8266_DISABLE_ECHO
 		if (!echo(false))
 			return false;
@@ -114,7 +114,9 @@ bool ESP8266Class::test()
 bool ESP8266Class::reset()
 {
 	sendCommand(ESP8266_RESET); // Send AT+RST
-		
+	
+	delay(2000);
+
 	if (readForResponsePROGMEM(RESPONSE_OK, COMMAND_RESET_TIMEOUT) > 0) {
 		return true;
 	}
@@ -514,36 +516,54 @@ int16_t ESP8266Class::tcpConnect(uint8_t linkID, const char * destination, uint1
 		// We may see "ERROR", but be "ALREADY CONNECTED".
 		// Search for "ALREADY", and return success if we see it.
 		char * p = searchBuffer("ALREADY");
-		if (p != NULL)
-			return 2;
-		// Otherwise the connection failed. Return the error code:
-		return rsp;
+		if (p == NULL) {
+			return rsp;
+		}
+		
 	}
-	// Return 1 on successful (new) connection
+
+
+	//invio il comando di invio
+	sendCommand(ESP8266_TCP_SEND);
+
+	int16_t rspSend = readForResponse(">", CLIENT_CONNECT_TIMEOUT);
+
+	if (rspSend > 0) {
+		return 1;
+	} else {
+		return rspSend;
+	}
+
 	return 1;
 }
 
 int16_t ESP8266Class::tcpSend(uint8_t linkID, const uint8_t *buf, size_t size)
-{
-	if (size > 2048)
-		return ESP8266_CMD_BAD;
-	char params[8];
-	sprintf(params, "%d,%d", linkID, size);
-	sendCommand(ESP8266_TCP_SEND, ESP8266_CMD_SETUP, params);
+{	
+
+	//delay(1000);
+
+	_serial->print((const char *)buf);
+	return size;
+
+	// if (size > 2048)
+	// 	return ESP8266_CMD_BAD;
+	// char params[8];
+	// sprintf(params, "%d,%d", linkID, size);
+	// sendCommand(ESP8266_TCP_SEND, ESP8266_CMD_SETUP, params);
 	
-	int16_t rsp = readForResponsesPROGMEM(RESPONSE_OK, RESPONSE_ERROR, COMMAND_RESPONSE_TIMEOUT);
-	//if (rsp > 0)
-	if (rsp != ESP8266_RSP_FAIL)
-	{
-		_serial->print((const char *)buf);
+	// int16_t rsp = readForResponsesPROGMEM(RESPONSE_OK, RESPONSE_ERROR, COMMAND_RESPONSE_TIMEOUT);
+	// //if (rsp > 0)
+	// if (rsp != ESP8266_RSP_FAIL)
+	// {
+	// 	_serial->print((const char *)buf);
 		
-		rsp = readForResponse("SEND OK", COMMAND_RESPONSE_TIMEOUT);
+	// 	rsp = readForResponse("SEND OK", COMMAND_RESPONSE_TIMEOUT);
 		
-		if (rsp > 0)
-			return size;
-	}
+	// 	if (rsp > 0)
+	// 		return size;
+	// }
 	
-	return rsp;
+	// return rsp;
 }
 
 int16_t ESP8266Class::close(uint8_t linkID)
